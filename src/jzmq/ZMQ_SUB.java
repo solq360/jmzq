@@ -6,10 +6,11 @@ import org.zeromq.ZMQ.Socket;
 
 /***
  * down http://download.csdn.net/detail/wangyahuizc/8041175
- * */
+ */
 public class ZMQ_SUB {
 
     public static void main(String[] args) {
+	System.loadLibrary("libzmq-v120-mt-4_0_4");
 
 	Context context = ZMQ.context(1);
 	Socket subscriber = context.socket(ZMQ.SUB);
