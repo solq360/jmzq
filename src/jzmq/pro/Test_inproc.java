@@ -1,26 +1,23 @@
-package jzmq;
+package jzmq.pro;
 
-import org.junit.Test;
 import org.zeromq.ZMQ;
+import org.zeromq.ZMQ.Context;
 import org.zeromq.ZMQ.Socket;
 
+import jzmq.TestCtx;
+
 /***
- * @author solq<br>
- *         300w 测试 push pull模式 <br>
- *         push time :1005<br>
- *         hello_2999999<br>
- *         all time :1006<br>
+ * @author solq 
+ * 测试进程交互 同一上下文
  */
-public class Test_Push_Pull extends TestCtx {
-    @Test
-    public void pushPullTest() throws InterruptedException {
+public class Test_inproc extends TestCtx {
+    public static void main(String[] args) throws InterruptedException {
+	Context ctx=ZMQ.context(1);
+	final Socket push = ctx.socket(ZMQ.PUSH);
+	final Socket pull = ctx.socket(ZMQ.PULL);
 
-	final Socket push = ZMQ.context(1).socket(ZMQ.PUSH);
-	final Socket pull = ZMQ.context(1).socket(ZMQ.PULL);
-
-	push.bind("tcp://*:5555");
-	pull.connect("tcp://localhost:5555");
-
+	push.bind("inproc://abc");
+	pull.connect("inproc://abc");
 
 	final int count = 3000000;
 	Thread t = new Thread(new Runnable() {
@@ -50,4 +47,5 @@ public class Test_Push_Pull extends TestCtx {
 	end = System.currentTimeMillis();
 	System.out.println("all time :" + (end - start));
     }
+     
 }

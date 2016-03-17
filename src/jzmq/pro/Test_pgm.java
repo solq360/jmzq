@@ -1,28 +1,23 @@
-package jzmq;
+package jzmq.pro;
 
-import org.junit.Test;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Socket;
 
-/***
- * @author solq<br>
- *         300w 测试 push pull模式 <br>
- *         push time :1005<br>
- *         hello_2999999<br>
- *         all time :1006<br>
- */
-public class Test_Push_Pull extends TestCtx {
-    @Test
-    public void pushPullTest() throws InterruptedException {
+import jzmq.TestCtx;
 
+/***
+ * @author solq 
+ * pgm 要安装lib 没有效果
+ */
+public class Test_pgm extends TestCtx {
+    public static void main(String[] args) throws InterruptedException {
 	final Socket push = ZMQ.context(1).socket(ZMQ.PUSH);
 	final Socket pull = ZMQ.context(1).socket(ZMQ.PULL);
 
-	push.bind("tcp://*:5555");
-	pull.connect("tcp://localhost:5555");
+	push.bind("epgm://*:5555");
+	pull.connect("pgm://localhost:5555");
 
-
-	final int count = 3000000;
+	final int count = 30000;
 	Thread t = new Thread(new Runnable() {
 	    public void run() {
 		int v = 0;
@@ -50,4 +45,5 @@ public class Test_Push_Pull extends TestCtx {
 	end = System.currentTimeMillis();
 	System.out.println("all time :" + (end - start));
     }
+     
 }
