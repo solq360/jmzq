@@ -1,49 +1,51 @@
 package jzmq;
 
 import org.zeromq.ZMQ;
-import org.zeromq.ZMQ.Event;
 import org.zeromq.ZMQ.Socket;
 
 /***
- * @author solq
- * TODO 未完成
+ * @author solq 
+ * TODO
  */
-public class Test_Monitor extends TestCtx {
+public class Test_Poller extends TestCtx {
     public static void main(String[] args) throws InterruptedException {
 
 	final Socket push = ZMQ.context(1).socket(ZMQ.PUSH);
 	final Socket pull = ZMQ.context(1).socket(ZMQ.PULL);
+	final Socket pull2 = ZMQ.context(1).socket(ZMQ.PULL);
 
 	push.bind("tcp://*:5555");
 	pull.connect("tcp://localhost:5555");
+	pull.connect("tcp://localhost:5555");
 
-	// 监控
-	pull.monitor("inproc://reqmoniter", ZMQ.EVENT_CONNECTED | ZMQ.EVENT_DISCONNECTED); // 这段代码会创建一个pair类型的socket，专门来接收当前socket发生的事件
-	final ZMQ.Socket moniter = ZMQ.context(1).socket(ZMQ.PAIR);
-	moniter.connect("inproc://reqmoniter"); // 连接当前socket的监听
-
-	new Thread(new Runnable() {
-
-	    public void run() {
-		while (true) {
-		    Event event = Event.recv(moniter); // 从当前moniter里面读取event
-		    System.out.println(event.getEvent() + "  " + event.getAddress());
-		}
-	    }
-
-	}).start();
+	final ZMQ.Poller poller = new ZMQ.Poller(2); // 创建一个大小为2的poller
+	poller.register(pull, ZMQ.Poller.POLLIN); // 分别将上述的pull注册到poller上，注册的事件是读
+	poller.register(pull2, ZMQ.Poller.POLLIN);
 
 	final int count = 3000000;
 	Thread t = new Thread(new Runnable() {
 	    public void run() {
-		int v = 0;
 		String actual = null;
-		int _count = count;
-		while (_count-- > 0) {
-		    actual = new String(pull.recv());
-		    v++;
+		while (true) {
+		    poller.poll();
+		    int i = 0;
+		    if (poller.pollin(0)) {
+			while (null != pull.recv(ZMQ.NOBLOCK)) {// 这里采用了非阻塞，确保一次性将队列中的数据读取完
+			    i++;
+			}
+		    }
+		    if (poller.pollin(1)) {
+			while (null != pull2.recv(ZMQ.NOBLOCK)) {
+			    i++;
+			}
+		    }
+		    if (i % 100000 == 0) {
+			System.out.println(i);
+		    }
+		    if (i >= count) {
+			break;
+		    }
 		}
-		pull.close();
 		System.out.println(actual);
 	    }
 	});

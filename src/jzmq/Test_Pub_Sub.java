@@ -5,6 +5,7 @@ import org.zeromq.ZMQ.Socket;
 /***
  * @author solq
  * 目前测试发送得太快会丢消息。。。。。。
+ * TODO 未完成
  * */
 public class Test_Pub_Sub extends TestCtx {
     public static void main(String[] args) throws InterruptedException {

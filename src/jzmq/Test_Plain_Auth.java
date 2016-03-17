@@ -9,6 +9,7 @@ import org.zeromq.ZMsg;
 
 /***
  * @author solq {@linkplain http://hintjens.com/blog:49}
+ * TODO 未完成
  */
 public class Test_Plain_Auth extends TestCtx {
     @Test
