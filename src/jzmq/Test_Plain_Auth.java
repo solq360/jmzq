@@ -1,22 +1,32 @@
 package jzmq;
 
+import org.junit.Test;
+import org.zeromq.ZAuth;
+import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Socket;
+import org.zeromq.ZMsg;
 
 /***
- * @author solq<br>
- *         300w 测试 push pull模式 <br>
- *         push time :1005<br>
- *         hello_2999999<br>
- *         all time :1006<br>
+ * @author solq {@linkplain http://hintjens.com/blog:49}
  */
-public class Test_Push_Pull extends TestCtx {
-    public static void main(String[] args) throws InterruptedException {
-
-	final Socket push = ZMQ.context(1).socket(ZMQ.PUSH);
-	final Socket pull = ZMQ.context(1).socket(ZMQ.PULL);
-
+public class Test_Plain_Auth extends TestCtx {
+    @Test
+    public void pushPullTest() throws InterruptedException {
+	ZContext zContext = new ZContext();
+	ZAuth zAuth = new ZAuth(zContext);
+	zAuth.allow("*");
+	// zAuth.configurePlain(domain, filename);
+	final Socket push = zContext.createSocket(ZMQ.PUSH);
+	final Socket pull = zContext.createSocket(ZMQ.PULL);
+	push.setPlainServer(true);
+	push.setPlainUsername("solq".getBytes());
+	push.setPlainPassword("hello".getBytes());
 	push.bind("tcp://*:5555");
+
+	// pull.setIdentity("xrlserjlsekjrlsejr".getBytes());
+	pull.setPlainUsername("solq".getBytes());
+	pull.setPlainPassword("hello".getBytes());
 	pull.connect("tcp://localhost:5555");
 
 	final int count = 3000000;
@@ -47,5 +57,4 @@ public class Test_Push_Pull extends TestCtx {
 	end = System.currentTimeMillis();
 	System.out.println("all time :" + (end - start));
     }
-
 }

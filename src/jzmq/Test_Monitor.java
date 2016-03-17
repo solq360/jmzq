@@ -1,16 +1,14 @@
 package jzmq;
 
 import org.zeromq.ZMQ;
+import org.zeromq.ZMQ.Event;
 import org.zeromq.ZMQ.Socket;
 
 /***
- * @author solq<br>
- *         300w 测试 push pull模式 <br>
- *         push time :1005<br>
- *         hello_2999999<br>
- *         all time :1006<br>
+ * @author solq
+ * 
  */
-public class Test_Push_Pull extends TestCtx {
+public class Test_Monitor extends TestCtx {
     public static void main(String[] args) throws InterruptedException {
 
 	final Socket push = ZMQ.context(1).socket(ZMQ.PUSH);
@@ -18,6 +16,22 @@ public class Test_Push_Pull extends TestCtx {
 
 	push.bind("tcp://*:5555");
 	pull.connect("tcp://localhost:5555");
+
+	// 监控
+	pull.monitor("inproc://reqmoniter", ZMQ.EVENT_CONNECTED | ZMQ.EVENT_DISCONNECTED); // 这段代码会创建一个pair类型的socket，专门来接收当前socket发生的事件
+	final ZMQ.Socket moniter = ZMQ.context(1).socket(ZMQ.PAIR);
+	moniter.connect("inproc://reqmoniter"); // 连接当前socket的监听
+
+	new Thread(new Runnable() {
+
+	    public void run() {
+		while (true) {
+		    Event event = Event.recv(moniter); // 从当前moniter里面读取event
+		    System.out.println(event.getEvent() + "  " + event.getAddress());
+		}
+	    }
+
+	}).start();
 
 	final int count = 3000000;
 	Thread t = new Thread(new Runnable() {
