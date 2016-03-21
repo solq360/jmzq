@@ -1,5 +1,6 @@
 package jzmq;
 
+import org.junit.Test;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Socket;
 /***
@@ -45,5 +46,43 @@ public class Test_Pub_Sub extends TestCtx {
 	end = System.currentTimeMillis();
 	System.out.println("all time :" + (end - start));
     }
+    
+    @Test
+    public   void myImpl() throws InterruptedException {
+	final Socket push = ZMQ.context(1).socket(ZMQ.PUSH);
+	final Socket pull = ZMQ.context(1).socket(ZMQ.PULL);
+
+	push.bind("tcp://*:5555");
+	pull.connect("tcp://localhost:5555");
+
+	final int count = 3000000;
+	Thread t = new Thread(new Runnable() {
+	    public void run() {
+		int v = 0;
+		String actual = null;
+		int _count = count;
+		while (_count-- > 0) {
+		    actual = new String(pull.recv());
+		    v++;
+		}
+		pull.close();
+		System.out.println(actual);
+	    }
+	});
+	t.start();
+
+	final String expected = "hello";
+	long start = System.currentTimeMillis();
+	for (int i = 0; i < count; i++) {
+	    push.send(expected + "_" + i);
+	}
+	long end = System.currentTimeMillis();
+	System.out.println("push time :" + (end - start));
+
+	t.join();
+	end = System.currentTimeMillis();
+	System.out.println("all time :" + (end - start));
+    }
+    
 
 }
