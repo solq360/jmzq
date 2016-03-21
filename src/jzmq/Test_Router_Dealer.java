@@ -3,6 +3,7 @@ package jzmq;
 import org.junit.Assert;
 import org.junit.Test;
 import org.zeromq.ZMQ;
+import org.zeromq.ZMQ.Context;
 import org.zeromq.ZMQ.Socket;
 
 public class Test_Router_Dealer extends TestCtx {
@@ -10,11 +11,13 @@ public class Test_Router_Dealer extends TestCtx {
     // 应答模式：queue XREP/XREQ
     // 订阅模式：forwarder SUB/PUB
     // 分包模式：streamer PULL/PUSH
+    // Thread-1:all time :20475
+    // Thread-0:all time :20493
     public static void main(String args[]) {
 	final int count = 3000000;
-	final ZMQ.Context context = ZMQ.context(1);
-	ZMQ.Socket router = context.socket(ZMQ.PULL);
-	ZMQ.Socket dealer = context.socket(ZMQ.PUSH);
+	Context context =ZMQ.context(Runtime.getRuntime().availableProcessors());
+ 	ZMQ.Socket router =  context.socket(ZMQ.PULL);
+	ZMQ.Socket dealer =  context.socket(ZMQ.PUSH);
 	router.bind("tcp://*:5555");
 	dealer.bind("tcp://*:5566");// worker
 
@@ -22,25 +25,25 @@ public class Test_Router_Dealer extends TestCtx {
 	// poller.register(router, ZMQ.Poller.POLLIN); //
 	// 分别将上述的pull注册到poller上，注册的事件是读
 	// poller.register(dealer, ZMQ.Poller.POLLIN);
-	for (int i = 0; i < 2; i++) {
+	
+	final Context clientContext =ZMQ.context(1);
+	for (int i = 0; i < 1; i++) {
 	    new Thread(new Runnable() {
 		public void run() {
-		    ZMQ.Socket pub = context.socket(ZMQ.PULL);
-		    pub.connect("tcp://localhost:5566");
+		    ZMQ.Socket pull = clientContext.socket(ZMQ.PULL);
+		    pull.connect("tcp://localhost:5566");
 		    int value = count;
 		    String str = null;
 		    long start = System.currentTimeMillis();
-
 		    while (value-- > 0) {
-			str = new String(pub.recv());
+			str = new String(pull.recv());
 			if (value % 100000 == 0) {
 			    System.out.println(Thread.currentThread().getName() + ":" + str);
 			}
 		    }
-
 		    long end = System.currentTimeMillis();
-		    System.out.println("all time :" + (end - start));
-		    pub.close();
+		    System.out.println(Thread.currentThread().getName() + ":" + "all time :" + (end - start));
+		    pull.close();
 		}
 
 	    }).start();
@@ -48,12 +51,15 @@ public class Test_Router_Dealer extends TestCtx {
 	for (int i = 0; i < 1; i++) {
 	    new Thread(new Runnable() {
 		public void run() {
-		    ZMQ.Socket push = context.socket(ZMQ.PUSH);
+		    ZMQ.Socket push =  clientContext.socket(ZMQ.PUSH);
 		    push.connect("tcp://localhost:5555");
 		    int value = count;
+		    long start = System.currentTimeMillis();
 		    while (value-- > 0) {
 			push.send("hello :" + value);
 		    }
+		    long end = System.currentTimeMillis();
+		    System.out.println(Thread.currentThread().getName() + ":" + "all time :" + (end - start));
 		    push.close();
 		}
 
