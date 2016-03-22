@@ -134,4 +134,30 @@ public class Test_Router_Dealer extends TestCtx {
 	Assert.assertArrayEquals("goodbye".getBytes(), response2);
 
     }
+    
+//    @Test
+//    public void testPub_Sub() throws Exception {
+//	final ZMQ.Context context = ZMQ.context(1);
+//
+//	final String ROUTER_HOUST="tcp://localhost:5561";
+//	final String DEALER_HOUST="tcp://localhost:5562";
+//	Thread thread = new Thread(new Runnable() {
+//	    @Override
+//	    public void run() {
+//		Socket PULL = context.socket(ZMQ.PULL);
+//		Socket PUB = context.socket(ZMQ.PUB);
+//		PULL.bind(ROUTER_HOUST);
+//		PUB.bind(DEALER_HOUST);
+// 	    }
+//	});
+//	thread.start();
+//	Thread.sleep(100L);
+//
+//	Socket sub = context.socket(ZMQ.SUB);
+//	Socket worker = context.socket(ZMQ.PUB);	
+//	sub.connect(ROUTER_HOUST);
+//	sub.subscribe("test".getBytes());
+//	worker.connect(DEALER_HOUST); 
+//
+//    }
 }
